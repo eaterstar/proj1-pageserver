@@ -36,7 +36,7 @@ the 'tests' directory) and some manual tests.
   add identifying information. If you have concerns about adding your email ID, let the instructors know.
   
   ~~~~
-  ## Author: John Doe, jdoe@uoregon.edu ##
+  ## Yite Zhao, yzhao8@uoregon.edu ##
   ~~~~
   
 * Copy the credentials-skel.ini file to credentials.ini, then edit it
