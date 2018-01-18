@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 
 import socket    # Basic TCP/IP communication on the internet
 import _thread   # Response computation runs concurrently with main program
-
+import os
 
 def listen(portnum):
     """
@@ -68,6 +68,8 @@ CAT = """
    =(   )=
 """
 
+
+
 # HTTP response codes, as the strings we will actually send.
 # See:  https://en.wikipedia.org/wiki/List_of_HTTP_status_codes
 # or    http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html
@@ -76,7 +78,7 @@ STATUS_OK = "HTTP/1.0 200 OK\n\n"
 STATUS_FORBIDDEN = "HTTP/1.0 403 Forbidden\n\n"
 STATUS_NOT_FOUND = "HTTP/1.0 404 Not Found\n\n"
 STATUS_NOT_IMPLEMENTED = "HTTP/1.0 401 Not Implemented\n\n"
-
+      
 
 def respond(sock):
     """
@@ -88,19 +90,43 @@ def respond(sock):
     request = str(request, encoding='utf-8', errors='strict')
     log.info("--- Received request ----")
     log.info("Request was {}\n***\n".format(request))
-
     parts = request.split()
+
     if len(parts) > 1 and parts[0] == "GET":
+
         transmit(STATUS_OK, sock)
-        transmit(CAT, sock)
+        transmit(result(sock,parts), sock)
+      
     else:
         log.info("Unhandled request: {}".format(request))
         transmit(STATUS_NOT_IMPLEMENTED, sock)
         transmit("\nI don't handle this request: {}\n".format(request), sock)
+ 
+
 
     sock.shutdown(socket.SHUT_RDWR)
     sock.close()
     return
+
+def result(sock, parts):
+    path = get_options().DOCROOT
+    filePath = str(path)+str(parts[1])
+    for i in range(len(parts[1])-1):
+        if(not parts[1][i].isalnum() and parts[1][i] != '_'):
+            if(not parts[1][i+1].isalnum() and parts[1][i+1] != '_'):
+                return STATUS_FORBIDDEN
+
+
+
+  
+    if ( os.path.exists(filePath) and (filePath.endswith(".css") or filePath.endswith(".html"))):
+
+        file = open(filePath).read()
+        return file
+    else:
+        return STATUS_NOT_FOUND
+
+
 
 
 def transmit(msg, sock):
@@ -132,6 +158,7 @@ def get_options():
                          " Ports 0..1000 are reserved \n" +
                          "by the operating system").format(options.port))
 
+
     return options
 
 
@@ -144,6 +171,7 @@ def main():
     log.info("Listening on port {}".format(port))
     log.info("Socket is {}".format(sock))
     serve(sock, respond)
+    
 
 
 if __name__ == "__main__":
